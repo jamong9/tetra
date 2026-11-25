@@ -1,5 +1,7 @@
 package se.mickelus.tetra.effect;
 
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type;
+import se.mickelus.tetra.network.TetraPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -9,6 +11,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 public class TruesweepPacket extends AbstractPacket {
+    public static final Type<TruesweepPacket> TYPE = TetraPacketHandler.type("truesweep_packet");
+
+    @Override
+    public Type<TruesweepPacket> type() {
+        return TYPE;
+    }
     public TruesweepPacket() {
     }
 

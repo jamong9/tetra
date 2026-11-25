@@ -1,0 +1,107 @@
+Tetra 개발 참고 노트
+===================
+
+원작자 Mickelus의 1.20 기술 위키를 바탕으로 정리한 한국어 참고용 요약.
+원문 및 전체 목차 https://tetra.mickelus.se/wiki/1.20/tech
+이 작업 트리의 실행 대상은 Minecraft 1.21.1 / NeoForge / Java 21이다.
+위키의 데이터 설계를 참고하고, 구현과 파일 형식은 현재 코드 및 실제 실행으로 확인한다.
+
+데이터 수정 위치
+----------------
+레포 안의 기본 데이터는 src/main/resources/data/tetra/에 있다.
+일부 생성 데이터는 src/generated/resources/에 있다. 같은 리소스 ID가 두 곳에
+있으면 먼저 생성 코드와 Gradle 리소스 구성을 확인한다.
+데이터 팩으로 확장할 때는 파일의 경로, 네임스페이스, 팩 우선순위를 함께 확인한다.
+동일 ID를 합칠지 덮어쓸지는 데이터 유형마다 다르다. replace를 바꾸기 전에
+DataManager.java의 스토어 유형과 실제 로드 결과를 확인한다.
+
+  modules/          슬롯과 변형을 정의한다. 실제 능력치는 변형에 붙으며
+                    major 모듈은 개선을 수용할 수 있다. 양날 도구 등은
+                    slotSuffixes를 쓸 때 slots와 배열 길이를 맞춘다.
+  materials/        여러 모듈·설계도에서 공통으로 쓰는 재료 속성을 정의한다.
+                    재료를 변경하면 그 재료를 참조하는 변형도 함께 검사한다.
+  schematics/       작업대에서 가능한 제작을 정의한다. 슬롯, 표시 조건,
+                    도구 요구사항, 투입 재료, 결과 모듈·변형을 확인한다.
+  improvements/     모듈에 붙는 개선의 단계와 보너스를 정의한다.
+                    모듈이 해당 개선 ID를 받아들이는지도 확인한다.
+  replacements/     일반 도구를 개조하기 시작할 때 사용할 초기 모듈 구성을
+                    정의한다. 변경 시 내구도와 인챈트 이전을 확인한다.
+  synergies/        특정 모듈·개선 조합에 붙는 효과나 능력치를 정의한다.
+  tweaks/           모듈의 조정 가능한 값과 단계 규칙을 정의한다.
+  repairs/          모듈 변형의 수리 재료와 요구사항을 확인하는 출발점이다.
+  actions/          정동석 열기처럼 작업대에서 실행하는 데이터 기반 동작이다.
+  archetypes/       동적 모듈 아이템의 슬롯 구성과 기본 동작을 살펴볼 때 참고한다.
+  unlocks/          설계도나 효과 해금 조건을 수정할 때 참고한다.
+  crafting_effects/ 제작 중 조건을 평가하고 추가 결과를 적용한다. 직접 발동 여부,
+                    requirement와 outcomes, 적용 후 재료와 결과 스택을 확인한다.
+  item_effects/     사용 이벤트의 trigger, 선택적 condition, outcome을 정의한다.
+                    반복 사용되는 수치·벡터·엔티티 계산은 data에서 참조할 수 있다.
+
+JSON 필드와 예시는 schemas/ 및 같은 유형의 번들 데이터를 함께 본다.
+모델·번역·사운드 리소스는 src/main/resources/assets/tetra/에서 확인한다.
+예를 들어 검 기본 칼날을 바꿀 때는 modules/sword/basic_blade.json과
+schematics/sword/basic_blade.json을 함께 보고, 작업대 표시·실제 제작·
+재료 소모까지 같은 테스트에서 확인한다.
+
+원작 문서에서 더 찾아보기
+------------------------
+Modules       https://tetra.mickelus.se/wiki/1.20/tech/modules
+Schematics    https://tetra.mickelus.se/wiki/1.20/tech/schematics
+Materials     https://tetra.mickelus.se/wiki/1.20/tech/materials
+Improvements  https://tetra.mickelus.se/wiki/1.20/tech/improvements
+Replacements  https://tetra.mickelus.se/wiki/1.20/tech/replacements
+Crafting      https://tetra.mickelus.se/wiki/1.20/tech/crafting-effects
+Item effects  https://tetra.mickelus.se/wiki/1.20/tech/item-effects
+Addon example https://tetra.mickelus.se/wiki/1.20/tech/custom-item-effects
+개별 문서가 열리지 않으면 위키 목차, 레포의 schemas/, DataManager.java,
+해당 디렉터리의 번들 JSON을 순서대로 참고한다.
+
+1.21.1 포팅 코드에서 확인할 지점
+---------------------------------
+이 절은 현재 저장소에서 확인한 내용이다. 아래 Java 이름은
+src/main/java/se/mickelus/tetra/ 기준이다.
+
+  모드 연동   build.gradle의 ModDevGradle 설정과 gradle.properties를 본다.
+              메타데이터 원본은 src/main/templates/META-INF/neoforge.mods.toml이다.
+              원작 위키의 fg.deobf와 mods.toml 예시는 1.20 환경에 해당한다.
+  도구 능력   TetraItemAbilities.java 및 properties/PropertyHelper.java.
+              1.20의 ToolActions에 해당하는 현재 API는 ItemAbility다.
+              제작과 채굴에서는 능력의 레벨과 효율을 각각 확인한다.
+  속성        properties/TetraAttributes.java와
+              data/deserializer/AttributesDeserializer.java를 확인한다.
+              기존 Forge 도달 거리 키 일부는 1.21.1 속성 ID로 변환된다.
+  인챈트      aspect/TetraEnchantmentHelper.java를 본다. 스택의 실제 인챈트와
+              모듈 슬롯별 배정이 함께 유지되는지 확인한다.
+  저장        util/ItemStackTagHelper.java의 mutate로 CUSTOM_DATA를 수정한다.
+              읽기용 태그는 복사본이다. 도구벨트처럼 내부에 다른 아이템 스택을
+              저장하는 기능은 1.20.1 형식과 1.21.1 형식을 함께 검사한다.
+  제작        blocks/workbench/WorkbenchTile.java, module/SchematicRegistry.java,
+              module/ItemUpgradeRegistry.java를 확인한다. 클라이언트 미리보기와
+              서버의 최종 결과에서 스택, 재료 소모, 슬롯 동기화를 확인한다.
+  패킷        network/TetraPacketHandler.java에서 패킷 방향과 등록을 확인한다.
+  효과음      assets/tetra/sounds.json 및 sounds/ 아래 OGG 경로를 확인한다.
+              서버에서만 발생하는 조작음은 조작한 플레이어도 수신해야 한다.
+              양쪽에서 예측하는 경로는 변경 후 소리가 두 번 나는지도 확인한다.
+  선택 연동   Curios는 선택 의존성이다. Curios API 접근 전에 로드 여부를
+              확인하고, 설치한 구성과 설치하지 않은 구성에서 동작을 비교한다.
+
+테스트와 디버깅
+---------------
+Java 21에서 Windows PowerShell 기준. 현재 작업 트리의 Gradle 캐시를
+재사용하려면 이 저장소 루트에서 GRADLE_USER_HOME을 .gradle 경로로 지정한다.
+
+  .\gradlew.bat build
+  .\gradlew.bat runClient
+  .\gradlew.bat -PgameTests runGameTestServer
+  .\gradlew.bat -PgameTests -PwithoutCurios runGameTestServer
+
+서버 테스트 소스는 src/gameTest/java/se/mickelus/tetra/PortGameTests.java에 있다.
+클라이언트 테스트는 새 테스트 월드에서 하고 run/logs/latest.log를 확인한다.
+별도 데이터 팩 수정이라면 /datapack list와 리소스 팩 화면에서 적용 여부를
+확인한다. 원작 위키의 개발 모드 안내를 따를 때는 ConfigHandler.java에서
+현재 설정 위치와 키를 확인한다.
+
+실제 수정 순서의 예
+  열 전지 삽입·분리 소리가 빠질 때는 TransferUnitBlock과 HammerBaseBlock의
+  상호작용을 먼저 비교한다. 서버 소리의 제외 대상과 클라이언트 예측 여부를
+  확인한 뒤, 직접 조작한 클라이언트의 사운드 엔진에서 재생 이벤트를 확인한다.

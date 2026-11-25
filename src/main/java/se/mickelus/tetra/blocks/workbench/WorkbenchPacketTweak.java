@@ -1,5 +1,7 @@
 package se.mickelus.tetra.blocks.workbench;
 
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type;
+import se.mickelus.tetra.network.TetraPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
@@ -7,18 +9,21 @@ import se.mickelus.mutil.network.BlockPosPacket;
 import se.mickelus.mutil.util.CastOptional;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
 
 @ParametersAreNonnullByDefault
 public class WorkbenchPacketTweak extends BlockPosPacket {
+    public static final Type<WorkbenchPacketTweak> TYPE = TetraPacketHandler.type("workbench_packet_tweak");
+
+    @Override
+    public Type<WorkbenchPacketTweak> type() {
+        return TYPE;
+    }
 
     String slot;
     Map<String, Integer> tweaks;
 
     public WorkbenchPacketTweak() {
-        tweaks = new HashMap<>();
     }
 
     public WorkbenchPacketTweak(BlockPos pos, String slot, Map<String, Integer> tweaks) {
@@ -32,35 +37,16 @@ public class WorkbenchPacketTweak extends BlockPosPacket {
     public void toBytes(FriendlyByteBuf buffer) {
         super.toBytes(buffer);
 
-        try {
-            writeString(slot, buffer);
-        } catch (IOException e) {
-            System.err.println("An error occurred when writing tweak packet to buffer");
-        }
-        buffer.writeInt(tweaks.size());
-        tweaks.forEach((tweakKey, step) -> {
-            try {
-                writeString(tweakKey, buffer);
-                buffer.writeInt(step);
-            } catch (IOException e) {
-                System.err.println("An error occurred when writing tweak packet to buffer");
-            }
-        });
+        buffer.writeUtf(slot);
+        buffer.writeMap(tweaks, FriendlyByteBuf::writeUtf, FriendlyByteBuf::writeInt);
     }
 
     @Override
     public void fromBytes(FriendlyByteBuf buffer) {
         super.fromBytes(buffer);
 
-        try {
-            slot = readString(buffer);
-            int size = buffer.readInt();
-            for (int i = 0; i < size; i++) {
-                tweaks.put(readString(buffer), buffer.readInt());
-            }
-        } catch (IOException e) {
-            System.err.println("An error occurred when reading tweak packet from buffer");
-        }
+        slot = buffer.readUtf();
+        tweaks = buffer.readMap(FriendlyByteBuf::readUtf, FriendlyByteBuf::readInt);
     }
 
     @Override

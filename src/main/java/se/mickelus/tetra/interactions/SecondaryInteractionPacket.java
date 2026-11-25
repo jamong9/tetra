@@ -1,5 +1,7 @@
 package se.mickelus.tetra.interactions;
 
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type;
+import se.mickelus.tetra.network.TetraPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.Entity;
@@ -9,6 +11,12 @@ import se.mickelus.mutil.network.BlockPosPacket;
 import java.util.Optional;
 
 public class SecondaryInteractionPacket extends BlockPosPacket {
+    public static final Type<SecondaryInteractionPacket> TYPE = TetraPacketHandler.type("secondary_interaction_packet");
+
+    @Override
+    public Type<SecondaryInteractionPacket> type() {
+        return TYPE;
+    }
     private String key;
     private int targetId = -1;
 

@@ -1,5 +1,7 @@
 package se.mickelus.tetra.items.modular;
 
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type;
+import se.mickelus.tetra.network.TetraPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
@@ -14,6 +16,12 @@ import java.util.Optional;
 
 @ParametersAreNonnullByDefault
 public class ChargedAbilityPacket extends BlockPosPacket {
+    public static final Type<ChargedAbilityPacket> TYPE = TetraPacketHandler.type("charged_ability_packet");
+
+    @Override
+    public Type<ChargedAbilityPacket> type() {
+        return TYPE;
+    }
 
     private int targetId = -1;
     private InteractionHand hand;

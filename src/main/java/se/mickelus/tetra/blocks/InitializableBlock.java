@@ -1,15 +1,17 @@
 package se.mickelus.tetra.blocks;
 
-import net.minecraftforge.api.distmarker.Dist;
-import net.minecraftforge.api.distmarker.OnlyIn;
-import se.mickelus.mutil.network.PacketHandler;
+import net.neoforged.api.distmarker.Dist;
+import net.neoforged.api.distmarker.OnlyIn;
+import se.mickelus.tetra.network.TetraPacketHandler;
 
 public interface InitializableBlock {
+    default void registerPackets(TetraPacketHandler packetHandler) {
+    }
 
     @OnlyIn(Dist.CLIENT)
     default void clientInit() {
     }
 
-    default void commonInit(PacketHandler packetHandler) {
+    default void commonInit(TetraPacketHandler packetHandler) {
     }
 }

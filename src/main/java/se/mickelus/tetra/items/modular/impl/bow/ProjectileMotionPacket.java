@@ -1,5 +1,7 @@
 package se.mickelus.tetra.items.modular.impl.bow;
 
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type;
+import se.mickelus.tetra.network.TetraPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.entity.projectile.Projectile;
@@ -11,6 +13,12 @@ import java.util.Optional;
 
 @ParametersAreNonnullByDefault
 public class ProjectileMotionPacket extends AbstractPacket {
+    public static final Type<ProjectileMotionPacket> TYPE = TetraPacketHandler.type("projectile_motion_packet");
+
+    @Override
+    public Type<ProjectileMotionPacket> type() {
+        return TYPE;
+    }
     private int entityId = -1;
     private float motionX;
     private float motionY;

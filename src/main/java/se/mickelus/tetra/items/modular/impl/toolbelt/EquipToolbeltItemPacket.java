@@ -1,5 +1,7 @@
 package se.mickelus.tetra.items.modular.impl.toolbelt;
 
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type;
+import se.mickelus.tetra.network.TetraPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.player.Player;
@@ -10,6 +12,12 @@ import javax.annotation.ParametersAreNonnullByDefault;
 
 @ParametersAreNonnullByDefault
 public class EquipToolbeltItemPacket extends AbstractPacket {
+    public static final Type<EquipToolbeltItemPacket> TYPE = TetraPacketHandler.type("equip_toolbelt_item_packet");
+
+    @Override
+    public Type<EquipToolbeltItemPacket> type() {
+        return TYPE;
+    }
 
     private ToolbeltSlotType slotType;
     private int toolbeltItemIndex;

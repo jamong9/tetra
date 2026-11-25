@@ -1,5 +1,7 @@
 package se.mickelus.tetra.blocks.workbench;
 
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type;
+import se.mickelus.tetra.network.TetraPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
@@ -8,10 +10,16 @@ import se.mickelus.tetra.module.SchematicRegistry;
 import se.mickelus.tetra.module.schematic.UpgradeSchematic;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.io.IOException;
+import java.util.Objects;
 
 @ParametersAreNonnullByDefault
 public class WorkbenchPacketUpdate extends AbstractPacket {
+    public static final Type<WorkbenchPacketUpdate> TYPE = TetraPacketHandler.type("workbench_packet_update");
+
+    @Override
+    public Type<WorkbenchPacketUpdate> type() {
+        return TYPE;
+    }
 
     private BlockPos pos;
     private UpgradeSchematic schematic;
@@ -32,21 +40,8 @@ public class WorkbenchPacketUpdate extends AbstractPacket {
         buffer.writeInt(pos.getY());
         buffer.writeInt(pos.getZ());
 
-        try {
-            if (schematic != null) {
-                writeString(schematic.getKey(), buffer);
-            } else {
-                writeString("", buffer);
-            }
-
-            if (selectedSlot != null) {
-                writeString(selectedSlot, buffer);
-            } else {
-                writeString("", buffer);
-            }
-        } catch (IOException exception) {
-            System.err.println("An error occurred when writing schematic name to packet buffer");
-        }
+        buffer.writeUtf(schematic != null ? schematic.getKey() : "");
+        buffer.writeUtf(Objects.requireNonNullElse(selectedSlot, ""));
     }
 
     @Override
@@ -56,17 +51,10 @@ public class WorkbenchPacketUpdate extends AbstractPacket {
         int z = buffer.readInt();
         pos = new BlockPos(x, y, z);
 
-        try {
-            String schematicKey = readString(buffer);
-            schematic = SchematicRegistry.getSchematic(schematicKey);
-
-            selectedSlot = readString(buffer);
-
-            if ("".equals(selectedSlot)) {
-                selectedSlot = null;
-            }
-        } catch (IOException exception) {
-            System.err.println("An error occurred when reading schematic name from packet buffer");
+        schematic = SchematicRegistry.getSchematic(buffer.readUtf());
+        selectedSlot = buffer.readUtf();
+        if (selectedSlot.isEmpty()) {
+            selectedSlot = null;
         }
     }
 

@@ -1,5 +1,7 @@
 package se.mickelus.tetra.blocks.workbench.action;
 
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type;
+import se.mickelus.tetra.network.TetraPacketHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Player;
@@ -7,10 +9,15 @@ import se.mickelus.mutil.network.BlockPosPacket;
 import se.mickelus.tetra.blocks.workbench.WorkbenchTile;
 
 import javax.annotation.ParametersAreNonnullByDefault;
-import java.io.IOException;
 
 @ParametersAreNonnullByDefault
 public class WorkbenchActionPacket extends BlockPosPacket {
+    public static final Type<WorkbenchActionPacket> TYPE = TetraPacketHandler.type("workbench_action_packet");
+
+    @Override
+    public Type<WorkbenchActionPacket> type() {
+        return TYPE;
+    }
 
     private String actionKey;
 
@@ -25,22 +32,14 @@ public class WorkbenchActionPacket extends BlockPosPacket {
     @Override
     public void toBytes(FriendlyByteBuf buffer) {
         super.toBytes(buffer);
-        try {
-            writeString(actionKey, buffer);
-        } catch (IOException exception) {
-            System.err.println("An error occurred when writing action name to packet buffer");
-        }
+        buffer.writeUtf(actionKey);
     }
 
     @Override
     public void fromBytes(FriendlyByteBuf buffer) {
         super.fromBytes(buffer);
 
-        try {
-            actionKey = readString(buffer);
-        } catch (IOException exception) {
-            System.err.println("An error occurred when reading action name from packet buffer");
-        }
+        actionKey = buffer.readUtf();
     }
 
     @Override

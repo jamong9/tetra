@@ -1,5 +1,7 @@
 package se.mickelus.tetra.items.modular;
 
+import net.minecraft.network.protocol.common.custom.CustomPacketPayload.Type;
+import se.mickelus.tetra.network.TetraPacketHandler;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.Entity;
@@ -13,6 +15,12 @@ import java.util.Optional;
 
 @ParametersAreNonnullByDefault
 public class SecondaryAbilityPacket extends AbstractPacket {
+    public static final Type<SecondaryAbilityPacket> TYPE = TetraPacketHandler.type("secondary_ability_packet");
+
+    @Override
+    public Type<SecondaryAbilityPacket> type() {
+        return TYPE;
+    }
     private int targetId = -1;
     private InteractionHand hand;
 

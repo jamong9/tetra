@@ -1,5 +1,6 @@
 package se.mickelus.tetra.blocks;
 
+import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.particles.DustColorTransitionOptions;
@@ -26,7 +27,7 @@ import net.minecraft.world.level.material.FluidState;
 import net.minecraft.world.level.material.Fluids;
 import net.minecraft.world.level.material.PushReaction;
 import net.minecraft.world.phys.Vec3;
-import net.minecraftforge.registries.RegistryObject;
+import java.util.function.Supplier;
 import org.joml.Vector3f;
 import se.mickelus.tetra.ServerScheduler;
 import se.mickelus.tetra.TetraMod;
@@ -41,7 +42,8 @@ import javax.annotation.ParametersAreNonnullByDefault;
 public class ArcaneFireBlock extends BaseFireBlock {
     public static final String identifier = "arcane_fire";
     public static final IntegerProperty ageProperty = BlockStateProperties.AGE_15;
-    public static RegistryObject<ArcaneFireBlock> instance;
+    public static Supplier<ArcaneFireBlock> instance;
+    private final MapCodec<ArcaneFireBlock> codec = MapCodec.unit(this);
 
     public ArcaneFireBlock() {
         super(BlockBehaviour.Properties.of()
@@ -57,12 +59,17 @@ public class ArcaneFireBlock extends BaseFireBlock {
         registerDefaultState(stateDefinition.any().setValue(ageProperty, 0));
     }
 
+    @Override
+    protected MapCodec<? extends BaseFireBlock> codec() {
+        return codec;
+    }
+
     public static void spawnDelayed(ServerLevel level, BlockPos blockPos, Vec3 origin) {
         TetraMod.packetHandler.sendToAllPlayersNear(new SpawnParticlesPacket(
                         origin.x(), origin.y(), origin.z(),
                         blockPos.getX() + 0.5f, blockPos.getY(), blockPos.getZ() + 0.5f, false, 8,
                         Particles.splinteredPower.get()),
-                blockPos, 64, level.dimension());
+                level, blockPos, 64);
 
         ServerScheduler.schedule(40, () -> spawnDust(level, blockPos, 0.5f));
         ServerScheduler.schedule(38, () -> level.playSound(null, blockPos, TetraSounds.arcane_fire_1, SoundSource.PLAYERS, 0.05f, 1));
