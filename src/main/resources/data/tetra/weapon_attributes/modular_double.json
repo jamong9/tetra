@@ -1,0 +1,6 @@
+{
+    "parent": "bettercombat:pickaxe",
+    "attributes": {
+        "range_bonus": 0
+    }
+}

@@ -1,0 +1,8 @@
+{
+    "replace": false,
+    "values": [
+        "tetra:modular_double",
+        "tetra:modular_single",
+        "tetra:modular_sword"
+    ]
+}

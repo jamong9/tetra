@@ -3,6 +3,7 @@
     "package": "se.mickelus.tetra.mixin",
     "compatibilityLevel": "JAVA_21",
     "mixins": [
+        "compat.BetterCombatWeaponRegistryMixin",
         "EnchantmentHelperMixin",
         "GrindstoneContainerMixin",
         "ItemStackMixin",
